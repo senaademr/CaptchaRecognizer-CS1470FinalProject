@@ -32,6 +32,16 @@ def get_data():
 
     test_labels = [os.path.basename(label).replace('.png', '') for label in test_labels]
 
+    train_examples, train_labels = split_into_letters(train_examples, train_labels)
+    train_examples = np.concatenate(train_examples, axis=0 )
+    train_examples = np.reshape(train_examples, (-1, 1, 32, 32))
+    train_examples = np.transpose(train_examples, [0,2,3,1]).astype(np.float32)
+
+    test_examples, test_labels = split_into_letters(test_examples, test_labels)
+    test_examples = np.concatenate(test_examples, axis=0 )
+    test_examples = np.reshape(test_examples, (-1, 1, 32, 32))
+    test_examples = np.transpose(test_examples, [0,2,3,1]).astype(np.float32)
+
     return train_examples, train_labels, test_examples, test_labels
 
 def resize_to_fit(image, width, height):
@@ -99,7 +109,7 @@ def split_into_letters(examples, labels):
                 letters.append(letter_image)
                 letter_labels.append(alphanumeric.find(letter))
                 letter_image = resize_to_fit(letter_image,32,32)
-                
+
     return letters, letter_labels
 
 def main():

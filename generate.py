@@ -6,8 +6,8 @@ import random
 
 import pdb
 
-NUM_TRAIN = 100
-NUM_TEST = 10
+NUM_TRAIN = 10000
+NUM_TEST = 1000
 CAPTCHA_LEN = 4
 
 def main():
