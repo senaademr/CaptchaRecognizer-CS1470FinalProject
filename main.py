@@ -15,7 +15,7 @@ def train(model, train_inputs, train_labels):
     indices = tf.random.shuffle(tf.range(num_examples))
     train_inputs = tf.gather(train_inputs, indices)
     train_labels = tf.gather(train_labels, indices)
-    for i in range(0, num_examples, model.batch_size):
+    for i in range(0, 1000, model.batch_size): #MUST FIX!!!
         batch_inputs = train_inputs[i:min(num_examples, i+model.batch_size)]
         batch_labels = train_labels[i:min(num_examples, i+model.batch_size)]
 
@@ -25,6 +25,8 @@ def train(model, train_inputs, train_labels):
 
         gradients = tape.gradient(loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+        print(f'{i} out of {num_examples} processed for training')
+
 
 def test(model, test_inputs, test_labels):
 	"""
@@ -50,17 +52,18 @@ def test(model, test_inputs, test_labels):
 	return sum / num_batches
 
 def main():
+    print('PREPROCESSING DATA...')
     train_examples, train_labels, test_examples, test_labels = get_data()
+    print('DATA PREPROCESSED...')
 
     print('TRAINING...')
     model = Model()
     for i in range(NUM_EPOCHS):
+        print(f'**************** EPOCH {i} ********************')
         train(model, train_examples, train_labels)
+        accuracy = test(model, test_examples, test_labels)
+        print(f'******************** TRAINING ACCURACY AFTER EPOCH {i} **********************')
     print('TRAINING COMPLETE')
-
-    print('TESTING...')
-    accuracy = test(model, test_examples, test_labels)
-    print(f'TESTING ACCURACY: {accuracy}')
 
 
 if __name__ == '__main__':

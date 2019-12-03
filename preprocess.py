@@ -20,7 +20,12 @@ def get_data():
 		train_examples.append(img)
 		train_labels.append(png)
 
+	train_examples = np.array(train_examples).astype(np.float32)
 	train_labels = [os.path.basename(label).replace('.png', '') for label in train_labels]
+	alphanumeric = string.digits + string.ascii_uppercase
+	train_labels = np.array([alphanumeric.find(char) for label in train_labels for char in label])
+	train_labels = np.reshape(train_labels, [train_labels.shape[0]//4, 4])
+
 
 	test_pngs = glob.glob('test_imgs/*.png')
 	test_examples = []
@@ -30,8 +35,12 @@ def get_data():
 		test_examples.append(img)
 		test_labels.append(png)
 
-	test_labels = [os.path.basename(label).replace('.png', '') for label in test_labels]
+	test_examples = np.array(test_examples).astype(np.float32)
+	test_labels = np.array([os.path.basename(label).replace('.png', '') for label in test_labels])
+	test_labels = np.array([alphanumeric.find(char) for label in test_labels for char in label])
+	test_labels = np.reshape(test_labels, [test_labels.shape[0]//4, 4])
 
+	'''
 	train_examples, train_labels = split_into_letters(train_examples, train_labels)
 	train_examples = np.concatenate(train_examples, axis=0 )
 	train_examples = np.reshape(train_examples, (-1, 1, 32, 32))
@@ -41,6 +50,7 @@ def get_data():
 	test_examples = np.concatenate(test_examples, axis=0 )
 	test_examples = np.reshape(test_examples, (-1, 1, 32, 32))
 	test_examples = np.transpose(test_examples, [0,2,3,1]).astype(np.float32)
+	'''
 
 	return train_examples, train_labels, test_examples, test_labels
 
