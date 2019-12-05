@@ -105,9 +105,9 @@ class Model(tf.keras.Model):
 		length = np.full((self.batch_size),4)
 		label_length = tf.convert_to_tensor(length)
 		logit_length = tf.convert_to_tensor(length)
-		logits = tf.reshape(logits, (self.batch_size, self.num_classes))
-		ctc_value = tf.nn.ctc_loss(labels, logits, label_length, logit_length)
-		return tf.reduce_mean(ctc_value)
+		logits = tf.reshape(logits, (-1, self.num_classes))
+		#ctc_value = tf.nn.ctc_loss(labels, logits, label_length, logit_length)
+		return tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(labels, logits, from_logits=False))
 
 	# Dont know if we really need this from hw but keep it for now
 	def accuracy(self, logits, labels):
@@ -122,5 +122,6 @@ class Model(tf.keras.Model):
 
 		:return: the accuracy of the model as a Tensor
 		"""
-		correct_predictions = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
+		logits = tf.reshape(logits, (-1, self.num_classes))
+		correct_predictions = tf.equal(tf.argmax(logits, 1), labels)
 		return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
