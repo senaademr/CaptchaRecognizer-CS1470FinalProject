@@ -8,7 +8,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
 
 import pdb
 
-NUM_EPOCHS = 8
+NUM_EPOCHS = 100
 
 def train(model, train_inputs, train_labels):
     num_examples = train_inputs.shape[0]
@@ -39,21 +39,28 @@ def test(model, test_inputs, test_labels):
 	:return: test accuracy - this can be the average accuracy across
 	all batches or the sum as long as you eventually divide it by batch_size
 	"""
-	sum = 0
+	total = 0
 	num_batches = 0
 	num_examples = test_inputs.shape[0]
 	for i in range(0, num_examples, model.batch_size):
 		batch_inputs = test_inputs[i:min(num_examples, i+model.batch_size)]
 		batch_labels = test_labels[i:min(num_examples, i+model.batch_size)]
 		logits = model.call(batch_inputs)
-		sum += model.accuracy(logits, batch_labels)
+		total += model.accuracy(logits, batch_labels)
 		num_batches += 1
 
-	return sum / num_batches
+	return total / num_batches
 
 def main():
     print('PREPROCESSING DATA...')
     train_examples, train_labels, test_examples, test_labels = get_data()
+
+    train_examples = np.tile(train_examples[0], (1000,1,1,1))
+    train_labels = np.tile(train_labels[0], (1000,1))
+    test_examples = np.tile(train_examples[0],(64,1,1,1))
+    test_labels = np.tile(train_labels[0], (64,1))
+    pdb.set_trace()
+
     print('DATA PREPROCESSED...')
 
     print('TRAINING...')
@@ -62,7 +69,7 @@ def main():
         print(f'**************** EPOCH {i} ********************')
         train(model, train_examples, train_labels)
         accuracy = test(model, test_examples, test_labels)
-        print(f'******************** TRAINING ACCURACY AFTER EPOCH {i} **********************')
+        print(f'******************** TRAINING ACCURACY AFTER EPOCH {i}: {accuracy} **********************')
     print('TRAINING COMPLETE')
 
 
