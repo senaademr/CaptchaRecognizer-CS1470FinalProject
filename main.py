@@ -79,7 +79,7 @@ def main():
         plt.xlabel('Batch (size 16)')
         plt.ylabel('Training Loss Per Batch')
         plt.title('Training Loss Per Batch vs. Batch Number')
-        plt.savefig('books_read.png')
+        plt.savefig('training_all_size_4.png')
         print('Testing')
         accuracy = test(model, test_examples, test_labels)
         print('******************** TRAINING ACCURACY AFTER EPOCH {} **********************'.format(i))
