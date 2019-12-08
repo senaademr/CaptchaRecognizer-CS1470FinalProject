@@ -15,7 +15,6 @@ import pdb
 NUM_EPOCHS = 4
 
 def train(model, train_inputs, train_labels, train_losses):
->>>>>>> ed8a92c9c93728d6e8cac243ff31fcd019fe4d46
     train_inputs = tf.reshape(train_inputs, (-1, 60, 160, 1))
     num_examples = train_inputs.shape[0]
     indices = tf.random.shuffle(tf.range(num_examples))
@@ -83,7 +82,7 @@ def main():
         plt.xlabel('Batch (size 16)')
         plt.ylabel('Training Loss Per Batch')
         plt.title('Training Loss Per Batch vs. Batch Number')
-        plt.savefig('training_all_size_4')
+        plt.savefig('training_all_size_4.png')
         print('Testing')
         accuracy = test(model, test_examples, test_labels)
         print('******************** TRAINING ACCURACY AFTER EPOCH {} **********************'.format(i))
