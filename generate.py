@@ -6,8 +6,8 @@ import random
 
 import pdb
 
-NUM_TRAIN = 100
-NUM_TEST = 10
+NUM_TRAIN = 30000
+NUM_TEST = 5000
 CAPTCHA_LEN = 4
 
 def main():
@@ -17,11 +17,11 @@ def main():
 
     for x in range(NUM_TRAIN):
         str = ''.join([random.choice(string.ascii_uppercase + string.digits) for n in range(CAPTCHA_LEN)])
-        generator.write(str, f'train_imgs/{str}.png')
+        generator.write(str, 'train_imgs/{}.png'.format(str))
 
     for x in range(NUM_TEST):
         str = ''.join([random.choice(string.ascii_uppercase + string.digits) for n in range(CAPTCHA_LEN)])
-        generator.write(str, f'test_imgs/{str}.png')
+        generator.write(str, 'test_imgs/{}.png'.format(str))
 
 if __name__ == '__main__':
     main()

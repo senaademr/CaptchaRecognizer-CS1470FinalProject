@@ -20,14 +20,14 @@ class Model(tf.keras.Model):
 		self.stddev = 0.1
 		self.initializer = tf.keras.initializers.TruncatedNormal(stddev=self.stddev)
 		self.lstm_units = 256
-		self.batch_size = 64
+		self.batch_size = 16
 		self.num_classes = 37 #26 letters + 10 digits + 1 blank
-		self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+		self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.5)
 
 		# Layer numbers follow the convolution numbers so they skip some according to the paper's model
 		# CNN Layers
 		self.sequence = tf.keras.Sequential()
-		self.sequence.add(tf.keras.layers.Conv2D(filters=64, kernel_size=3, input_shape=(60,160,3,), strides=(1, 1), padding='SAME', activation='relu', kernel_initializer=self.initializer, use_bias=False))
+		self.sequence.add(tf.keras.layers.Conv2D(filters=64, kernel_size=3, input_shape=(60,160,1,), strides=(1, 1), padding='SAME', activation='relu', kernel_initializer=self.initializer, use_bias=False))
 		self.sequence.add(tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
 
 		self.sequence.add(tf.keras.layers.Conv2D(filters=128, kernel_size=3, strides=(1, 1), padding='SAME', activation='relu', kernel_initializer=self.initializer, use_bias=False))
@@ -75,7 +75,7 @@ class Model(tf.keras.Model):
 		loss = tf.nn.ctc_loss(labels, logits, label_length, logit_length,
 							  logits_time_major=False, blank_index=self.num_classes-1)
 		avg_loss = tf.reduce_mean(loss)
-		print(f'TRAINING LOSS ON BATCH: {avg_loss}')
+		print('TRAINING LOSS ON BATCH: {}'.format(avg_loss))
 		return avg_loss
 
 	def accuracy(self, logits, labels):
@@ -97,6 +97,8 @@ class Model(tf.keras.Model):
 		results = 0
 		for i in range(labels.shape[0]):
 			if labels.shape[1] == decoded.shape[1]:
+				#if np.any(decoded[i] == labels[i]):
+				#	print('made some match')
 				if np.all(decoded[i] == labels[i]):
 					results+=1
 		return results/labels.shape[0]
