@@ -27,34 +27,39 @@ class Model(tf.keras.Model):
         # Layer numbers follow the convolution numbers so they skip some according to the paper's model
         # CNN Layers
         self.conv_1 = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=(1, 1),
-            padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer)
+            padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer,
+            activation=tf.nn.relu)
         self.max_pool_1 = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2))
 
         self.conv_2 = tf.keras.layers.Conv2D(filters=128, kernel_size=3, strides=(
-            1, 1), padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer)
+            1, 1), padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer,
+            activation=tf.nn.relu)
         self.max_pool_2 = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2))
 
         self.conv_3 = tf.keras.layers.Conv2D(filters=256, kernel_size=3, strides=(
-            1, 1), padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer)
+            1, 1), padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer,
+            activation=tf.nn.relu)
 
         self.conv_4 = tf.keras.layers.Conv2D(filters=256, kernel_size=3, strides=(
-            1, 1), padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer)
+            1, 1), padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer,
+            activation=tf.nn.relu)
         self.max_pool_4 = tf.keras.layers.MaxPool2D(pool_size=(2, 1))
 
         self.conv_5 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, strides=(1, 1),
-            padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer)
+            padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer,
+            activation=tf.nn.relu)
 
         self.batch_norm_5 = tf.keras.layers.BatchNormalization()
 
         self.conv_6 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, strides=(1, 1),
-            padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer)
+            padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer,
+            activation=tf.nn.relu)
         self.batch_norm_6 = tf.keras.layers.BatchNormalization()
         self.max_pool_6 = tf.keras.layers.MaxPool2D(pool_size=(2, 1))
 
         self.conv_7 = tf.keras.layers.Conv2D(filters=512, kernel_size=(2,2), strides=(
-            2, 2), padding='VALID', kernel_initializer=self.initializer, bias_initializer=self.initializer)
-
-        # Map to Sequence may need to have some layers here
+            2, 2), padding='VALID', kernel_initializer=self.initializer, bias_initializer=self.initializer,
+            activation=tf.nn.relu)
 
         #RNN Layers
         self.lstm_1 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(self.lstm_units, return_sequences=True,
@@ -62,7 +67,6 @@ class Model(tf.keras.Model):
         self.lstm_2 = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(self.lstm_units, return_sequences=True,
                     use_bias=True, kernel_initializer=self.initializer, bias_initializer=self.initializer), merge_mode='concat')
 
-        # Transcription - this might be wrong
         self.dense = tf.keras.layers.Dense(self.num_classes)
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
@@ -73,21 +77,17 @@ class Model(tf.keras.Model):
         """
         conv_layer_1 = self.conv_1(inputs)
         conv_layer_1 = self.max_pool_1(conv_layer_1)
-        conv_layer_1 = tf.nn.relu(conv_layer_1)
 
         conv_layer_2 = self.conv_2(conv_layer_1)
         conv_layer_2 = self.max_pool_2(conv_layer_2)
-        conv_layer_2 = tf.nn.relu(conv_layer_2)
 
         conv_layer_3 = self.conv_3(conv_layer_2)
 
         conv_layer_4 = self.conv_4(conv_layer_3)
         conv_layer_4 = self.max_pool_4(conv_layer_4)
-        conv_layer_4 = tf.nn.relu(conv_layer_4)
 
         conv_layer_5 = self.conv_5(conv_layer_4)
         conv_layer_5 = self.batch_norm_5(conv_layer_5)
-        conv_layer_5 = tf.nn.relu(conv_layer_5)
 
         conv_layer_6 = self.conv_6(conv_layer_5)
         conv_layer_6 = self.batch_norm_6(conv_layer_6)
@@ -123,7 +123,7 @@ class Model(tf.keras.Model):
         logits = tf.transpose(logits, perm=[1,0,2])
         sequence_length = tf.cast(tf.convert_to_tensor(np.full((logits.shape[1]), logits.shape[0])), tf.int32)
         #docs suggest that last index (self.num_classes-1) is 'blank' index for this fct
-        sparse, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length)
+        sparse, _ = tf.nn.ctc_beam_search_decoder(logits, sequence_length)
         decoded = tf.sparse.to_dense(sparse[0], default_value=-1)
         print('decoded')
         print(decoded[0])
@@ -138,7 +138,7 @@ class Model(tf.keras.Model):
         logits = tf.transpose(logits, perm=[1,0,2])
         sequence_length = tf.cast(tf.convert_to_tensor(np.full((logits.shape[1]), logits.shape[0])), tf.int32)
         #docs suggest that last index (self.num_classes-1) is 'blank' index for this fct
-        sparse, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length)
+        sparse, _ = tf.nn.ctc_beam_search_decoder(logits, sequence_length)
         decoded = tf.sparse.to_dense(sparse[0], default_value=-1)
 
         results = 0
