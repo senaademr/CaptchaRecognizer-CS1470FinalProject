@@ -128,6 +128,7 @@ class Model(tf.keras.Model):
         print('decoded')
         print(decoded[0])
         print('first label')
+        print(labels[0])
         avg_loss = tf.reduce_mean(loss)
         print('TRAINING LOSS ON BATCH: {}'.format(avg_loss))
         return avg_loss
