@@ -69,9 +69,6 @@ def main():
     if(len(sys.argv) > 1 and sys.argv[1] == 'restore'):
         print('RESTORING CHECKPOINT')
         checkpoint.restore(manager.latest_checkpoint)
-    for i in range(NUM_EPOCHS):
-        print('**************** EPOCH {} ********************'.format(i))
-        train(model, train_examples, train_labels)
 
     train_losses = []
     for i in range(NUM_EPOCHS):
