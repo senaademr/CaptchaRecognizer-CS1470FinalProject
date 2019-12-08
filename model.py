@@ -39,7 +39,7 @@ class Model(tf.keras.Model):
 
         self.conv_4 = tf.keras.layers.Conv2D(filters=256, kernel_size=3, strides=(
             1, 1), padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer)
-        self.max_pool_4 = tf.keras.layers.MaxPool2D(pool_size=(2, 2))
+        self.max_pool_4 = tf.keras.layers.MaxPool2D(pool_size=(2, 1))
 
         self.conv_5 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, strides=(1, 1),
             padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer)
@@ -49,7 +49,7 @@ class Model(tf.keras.Model):
         self.conv_6 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, strides=(1, 1),
             padding='SAME', kernel_initializer=self.initializer, bias_initializer=self.initializer)
         self.batch_norm_6 = tf.keras.layers.BatchNormalization()
-        self.max_pool_6 = tf.keras.layers.MaxPool2D(pool_size=(1, 2))
+        self.max_pool_6 = tf.keras.layers.MaxPool2D(pool_size=(2, 1))
 
         self.conv_7 = tf.keras.layers.Conv2D(filters=512, kernel_size=(2,2), strides=(
             2, 2), padding='VALID', kernel_initializer=self.initializer, bias_initializer=self.initializer)
@@ -94,7 +94,6 @@ class Model(tf.keras.Model):
         conv_layer_6 = self.max_pool_6(conv_layer_6)
 
         conv_layer_7 = self.conv_7(conv_layer_6)
-		# Map to Sequence not sure about this
         lstm_input = tf.transpose(conv_layer_7, [0,2,1,3])
         s = lstm_input.shape
         lstm_input = tf.reshape(lstm_input, [s[0],s[1],s[2]*s[3]])
@@ -112,7 +111,7 @@ class Model(tf.keras.Model):
         :param labels - [batch_size, max_seq_length]
         :return: the loss of the model as a Tensor
         """
-		# Find a way to calculate label_length and logit_length each tensor of shape [batch_size] so below will be changed
+        # Find a way to calculate label_length and logit_length each tensor of shape [batch_size] so below will be changed
         #label_length = tf.expand_dims(tf.convert_to_tensor(np.full((labels.shape[0]), labels.shape[1])), -1)
         #logit_length = tf.expand_dims(tf.convert_to_tensor(np.full((logits.shape[0]), logits.shape[1])), -1)
         label_length = tf.convert_to_tensor(np.full((labels.shape[0]), labels.shape[1]))
@@ -121,23 +120,25 @@ class Model(tf.keras.Model):
         loss = tf.nn.ctc_loss(labels, logits, label_length, logit_length,
                               logits_time_major=False, blank_index=self.num_classes-1)
         #loss = tf.keras.backend.ctc_batch_cost(labels, logits, logit_length, label_length)
-        avg_loss = tf.reduce_mean(loss)
-        print(f'TRAINING LOSS ON BATCH: {avg_loss}')
-        return avg_loss
-
-    def accuracy(self, logits, labels):
-        print(labels[0])
-        print('argmax')
-        print(np.argmax(logits, axis=2))
         logits = tf.transpose(logits, perm=[1,0,2])
         sequence_length = tf.cast(tf.convert_to_tensor(np.full((logits.shape[1]), logits.shape[0])), tf.int32)
         #docs suggest that last index (self.num_classes-1) is 'blank' index for this fct
         sparse, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length)
         decoded = tf.sparse.to_dense(sparse[0], default_value=-1)
         print('decoded')
-        print(decoded)
-        if np.any(decoded == -1):
-            print('still learning...')
+        print(decoded[0])
+        print('first label')
+        avg_loss = tf.reduce_mean(loss)
+        print('TRAINING LOSS ON BATCH: {}'.format(avg_loss))
+        return avg_loss
+
+    def accuracy(self, logits, labels):
+        print(np.argmax(logits, axis=2))
+        logits = tf.transpose(logits, perm=[1,0,2])
+        sequence_length = tf.cast(tf.convert_to_tensor(np.full((logits.shape[1]), logits.shape[0])), tf.int32)
+        #docs suggest that last index (self.num_classes-1) is 'blank' index for this fct
+        sparse, _ = tf.nn.ctc_greedy_decoder(logits, sequence_length)
+        decoded = tf.sparse.to_dense(sparse[0], default_value=-1)
 
         results = 0
         for i in range(decoded.shape[0]):
