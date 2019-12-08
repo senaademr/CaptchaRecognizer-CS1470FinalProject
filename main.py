@@ -1,9 +1,10 @@
-fromfrom preprocess import get_data, split_into_letters
+from preprocess import get_data, split_into_letters
 import cv2
 import numpy as np
 import tensorflow as tf
 from model import Model
 import os
+import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
 
 import pdb
@@ -11,20 +12,20 @@ import pdb
 NUM_EPOCHS = 4
 
 def train(model, train_inputs, train_labels):
-	train_inputs = tf.reshape(train_inputs, (-1, 60, 160, 1))
-	num_examples = train_inputs.shape[0]
-	indices = tf.random.shuffle(tf.range(num_examples))
-	train_inputs = tf.gather(train_inputs, indices)
-	train_labels = tf.gather(train_labels, indices)
-	for i in range(0, num_examples, model.batch_size):
-		batch_inputs = train_inputs[i:min(num_examples, i+model.batch_size)]
-		batch_labels = train_labels[i:min(num_examples, i+model.batch_size)]
-		with tf.GradientTape() as tape:
-			logits = model.call(batch_inputs)
-			loss = model.loss(logits, batch_labels)
-		gradients = tape.gradient(loss, model.trainable_variables)
-		model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-		print(f'{i} out of {num_examples} processed for training')
+    train_inputs = tf.reshape(train_inputs, (-1, 60, 160, 1))
+    num_examples = train_inputs.shape[0]
+    indices = tf.random.shuffle(tf.range(num_examples))
+    train_inputs = tf.gather(train_inputs, indices)
+    train_labels = tf.gather(train_labels, indices)
+    for i in range(0, num_examples, model.batch_size):
+        batch_inputs = train_inputs[i:min(num_examples, i+model.batch_size)]
+        batch_labels = train_labels[i:min(num_examples, i+model.batch_size)]
+        with tf.GradientTape() as tape:
+            logits = model.call(batch_inputs)
+            loss = model.loss(logits, batch_labels)
+        gradients = tape.gradient(loss, model.trainable_variables)
+        model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+        print('{} out of {} processed for training'.format(i, num_examples))
 
 
 def test(model, test_inputs, test_labels):

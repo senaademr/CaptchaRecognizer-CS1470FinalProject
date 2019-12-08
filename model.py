@@ -75,7 +75,7 @@ class Model(tf.keras.Model):
 		loss = tf.nn.ctc_loss(labels, logits, label_length, logit_length,
 							  logits_time_major=False, blank_index=self.num_classes-1)
 		avg_loss = tf.reduce_mean(loss)
-		print(f'TRAINING LOSS ON BATCH: {avg_loss}')
+		print('TRAINING LOSS ON BATCH: {}'.format(avg_loss))
 		return avg_loss
 
 	def accuracy(self, logits, labels):
