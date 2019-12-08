@@ -52,25 +52,26 @@ def test(model, test_inputs, test_labels):
 	return total / num_batches
 
 def main():
-    print('PREPROCESSING DATA...')
-    train_examples, train_labels, test_examples, test_labels = get_data()
+	print('PREPROCESSING DATA...')
+	train_examples, train_labels, test_examples, test_labels = get_data()
+	print('DATA PREPROCESSED...')
 
-    train_examples = np.tile(train_examples[0], (1000,1,1,1))
-    train_labels = np.tile(train_labels[0], (1000,1))
-    test_examples = np.tile(train_examples[0],(64,1,1,1))
-    test_labels = np.tile(train_labels[0], (64,1))
-
-    print('DATA PREPROCESSED...')
-
-    print('TRAINING...')
-    model = Model()
-    for i in range(NUM_EPOCHS):
-        print(f'**************** EPOCH {i} ********************')
-        train(model, train_examples, train_labels)
-        accuracy = test(model, test_examples, test_labels)
-        print(f'******************** TRAINING ACCURACY AFTER EPOCH {i}: {accuracy} **********************')
-    print('TRAINING COMPLETE')
+	print('TRAINING...')
+	model = Model()
+    checkpoint_dir = './checkpoints'
+    checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+    checkpoint = tf.train.Checkpoint(model=model)
+    manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=3)
+	for i in range(NUM_EPOCHS):
+		print(f'**************** EPOCH {i} ********************')
+		train(model, train_examples, train_labels)
+		print('Testing')
+		accuracy = test(model, test_examples, test_labels)
+		print(f'******************** TRAINING ACCURACY AFTER EPOCH {i} **********************')
+		print(accuracy)
+        manager.save()
+	print('TRAINING COMPLETE')
 
 
 if __name__ == '__main__':
-    main()
+	main()
