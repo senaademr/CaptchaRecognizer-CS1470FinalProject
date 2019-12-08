@@ -59,7 +59,6 @@ def main():
     train_labels = np.tile(train_labels[0], (1000,1))
     test_examples = np.tile(train_examples[0],(64,1,1,1))
     test_labels = np.tile(train_labels[0], (64,1))
-    pdb.set_trace()
 
     print('DATA PREPROCESSED...')
 
