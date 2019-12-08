@@ -5,13 +5,16 @@ import tensorflow as tf
 from model import Model
 import os
 import sys
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
 
 import pdb
 
 NUM_EPOCHS = 4
 
-def train(model, train_inputs, train_labels):
+def train(model, train_inputs, train_labels, train_losses):
     train_inputs = tf.reshape(train_inputs, (-1, 60, 160, 1))
     num_examples = train_inputs.shape[0]
     indices = tf.random.shuffle(tf.range(num_examples))
@@ -23,6 +26,7 @@ def train(model, train_inputs, train_labels):
         with tf.GradientTape() as tape:
             logits = model.call(batch_inputs)
             loss = model.loss(logits, batch_labels)
+            train_losses.append(loss)
         gradients = tape.gradient(loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         print('{} out of {} processed for training'.format(i, num_examples))
@@ -65,9 +69,17 @@ def main():
     if(len(sys.argv) > 1 and sys.argv[1] == 'restore'):
         print('RESTORING CHECKPOINT')
         checkpoint.restore(manager.latest_checkpoint)
+
+    train_losses = []
     for i in range(NUM_EPOCHS):
         print('**************** EPOCH {} ********************'.format(i))
-        train(model, train_examples, train_labels)
+        train(model, train_examples, train_labels, train_losses)
+        print('MAKING GRAPH')
+        plt.plot(np.arange(len(train_losses)), np.array(train_losses))
+        plt.xlabel('Batch (size 16)')
+        plt.ylabel('Training Loss Per Batch')
+        plt.title('Training Loss Per Batch vs. Batch Number')
+        plt.savefig('books_read.png')
         print('Testing')
         accuracy = test(model, test_examples, test_labels)
         print('******************** TRAINING ACCURACY AFTER EPOCH {} **********************'.format(i))
