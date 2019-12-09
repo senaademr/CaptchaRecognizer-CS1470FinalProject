@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg') uncomment this if on gcp
 from matplotlib import pyplot as plt
 
 import os
@@ -10,8 +10,7 @@ import random
 
 import pdb
 
-
-class Model(tf.keras.Model):		
+class Model(tf.keras.Model):
     def __init__(self):
         """
         This is the model class.
@@ -23,6 +22,7 @@ class Model(tf.keras.Model):
         self.initializer = tf.keras.initializers.TruncatedNormal(stddev=self.stddev)
         self.lstm_units = 256
         self.batch_size = 16
+        self.num_timesteps = 20
         self.num_classes = 37 #26 letters + 10 digits + 1 blank
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.5)
 
@@ -49,8 +49,8 @@ class Model(tf.keras.Model):
 
         self.sequence.add(tf.keras.layers.Conv2D(filters=512, kernel_size=2, strides=(2, 2), padding='VALID', activation='relu', kernel_initializer=self.initializer, use_bias=False))
         self.sequence.add(tf.keras.layers.BatchNormalization())
-        # Map to Sequence 
-        self.sequence.add(tf.keras.layers.Reshape((20,512)))
+        # Map to Sequence
+        self.sequence.add(tf.keras.layers.Reshape((self.num_timesteps,512)))
 
         # RNN Layers
         self.sequence.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(self.lstm_units, return_sequences=True), merge_mode='concat'))
@@ -85,7 +85,7 @@ class Model(tf.keras.Model):
 
         #sequence length is length of the sequence in the logits BEFORE the sequence is decoded
         #we would want sequences in the same batch to be different lengths if images had different widths
-        sequence_length = np.full((labels.shape[0]), 20, dtype=np.float32)
+        sequence_length = np.full((labels.shape[0]), self.num_timesteps, dtype=np.float32)
 
         #docs suggest that last index (self.num_classes-1) is 'blank' index for this fct
         sparse, _ = tf.nn.ctc_beam_search_decoder(logits, sequence_length)
