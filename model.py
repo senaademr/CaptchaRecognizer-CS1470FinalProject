@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 import os
