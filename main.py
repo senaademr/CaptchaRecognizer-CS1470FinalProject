@@ -36,7 +36,7 @@ def train(model, train_inputs, train_labels, train_lengths, train_losses):
         print('{} out of {} processed for training'.format(i, num_examples))
 
 
-def test(model, test_inputs, test_labels, test_lengths):
+def test(model, test_inputs, test_labels):
     """
     Tests the model on the test inputs and labels. You should NOT randomly
     flip images or do any extra preprocessing.
@@ -111,7 +111,7 @@ def main():
     train_losses = []
     for i in range(NUM_EPOCHS):
         print('**************** EPOCH {} ********************'.format(i))
-        train(model, train_examples, train_labels, train_lengths, train_losses)
+        #train(model, train_examples, train_labels, train_lengths, train_losses)
         print('MAKING GRAPH')
         plt.plot(np.arange(len(train_losses)), np.array(train_losses))
         plt.xlabel('Batch (size 16)')

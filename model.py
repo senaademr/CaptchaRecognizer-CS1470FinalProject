@@ -56,11 +56,10 @@ class Model(tf.keras.Model):
         self.sequence.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(self.lstm_units, return_sequences=True), merge_mode='concat'))
         self.sequence.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(self.lstm_units, return_sequences=True), merge_mode='concat'))
 
-        # Transcription - this might be wrong
         self.sequence.add(tf.keras.layers.Dense(self.num_classes))
 
     def call(self, inputs):
-        return self.sequence(inputs)
+        return tf.nn.softmax(self.sequence(inputs))
 
     def loss(self, logits, labels, label_length):
         """
@@ -74,7 +73,8 @@ class Model(tf.keras.Model):
         logit_length = tf.expand_dims(tf.convert_to_tensor(np.full((logits.shape[0]), logits.shape[1])), -1)
 
         #the last index (self.num_classes-1) is the 'blank' index
-        loss = tf.keras.backend.ctc_batch_cost(labels, logits, label_length, logit_length)
+        pdb.set_trace()
+        loss = tf.keras.backend.ctc_batch_cost(labels, logits, logit_length, label_length)
         avg_loss = tf.reduce_mean(loss)
         print('TRAINING LOSS ON BATCH: {}'.format(avg_loss))
         return avg_loss
@@ -93,11 +93,12 @@ class Model(tf.keras.Model):
         print(decoded)
         results = 0
         for i in range(labels.shape[0]):
-            predicted_sequence = decoded[0]
+            predicted_sequence = decoded[i]
             predicted_sequence = predicted_sequence[predicted_sequence != -1]
-            label_sequence = labels[0]
+            label_sequence = labels[i]
             label_sequence = label_sequence[label_sequence != -1]
             if label_sequence.shape[0] == predicted_sequence.shape[0]:
                 if np.all(label_sequence == predicted_sequence):
                     results+=1
+
         return results / labels.shape[0]
