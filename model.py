@@ -73,7 +73,6 @@ class Model(tf.keras.Model):
         logit_length = tf.expand_dims(tf.convert_to_tensor(np.full((logits.shape[0]), logits.shape[1])), -1)
 
         #the last index (self.num_classes-1) is the 'blank' index
-        pdb.set_trace()
         loss = tf.keras.backend.ctc_batch_cost(labels, logits, logit_length, label_length)
         avg_loss = tf.reduce_mean(loss)
         print('TRAINING LOSS ON BATCH: {}'.format(avg_loss))

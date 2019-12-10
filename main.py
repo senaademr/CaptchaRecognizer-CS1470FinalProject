@@ -111,7 +111,7 @@ def main():
     train_losses = []
     for i in range(NUM_EPOCHS):
         print('**************** EPOCH {} ********************'.format(i))
-        #train(model, train_examples, train_labels, train_lengths, train_losses)
+        train(model, train_examples, train_labels, train_lengths, train_losses)
         print('MAKING GRAPH')
         plt.plot(np.arange(len(train_losses)), np.array(train_losses))
         plt.xlabel('Batch (size 16)')
