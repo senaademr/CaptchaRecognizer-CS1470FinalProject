@@ -62,7 +62,7 @@ class Model(tf.keras.Model):
     def call(self, inputs):
         return self.sequence(inputs)
 
-    def loss(self, logits, labels):
+    def loss(self, logits, labels, label_length):
         """
         Calculates the model loss after one forward pass.
         :param logits
@@ -70,12 +70,12 @@ class Model(tf.keras.Model):
         :return: the loss of the model as a Tensor
         """
         # Find a way to calculate label_length and logit_length each tensor of shape [batch_size] so below will be changed
-        label_length = tf.convert_to_tensor(np.full((labels.shape[0]), labels.shape[1]))
+        pdb.set_trace()
+        #label_length = tf.convert_to_tensor(np.full((labels.shape[0]), labels.shape[1]))
         logit_length = tf.convert_to_tensor(np.full((logits.shape[0]), logits.shape[1]))
 
         #the last index (self.num_classes-1) is the 'blank' index
-        loss = tf.nn.ctc_loss(labels, logits, label_length, logit_length,
-                              logits_time_major=False, blank_index=self.num_classes-1)
+        loss = tf.keras.backend.ctc_batch_cost(labels, logits, label_length, logit_length)
         avg_loss = tf.reduce_mean(loss)
         print('TRAINING LOSS ON BATCH: {}'.format(avg_loss))
         return avg_loss

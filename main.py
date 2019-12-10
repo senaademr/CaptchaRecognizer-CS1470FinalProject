@@ -6,7 +6,7 @@ import os
 import sys
 import string
 import matplotlib
-#matplotlib.use('Agg') uncomment this if on gcp
+#matplotlib.use('Agg') #uncomment this if on gcp
 import matplotlib.pyplot as plt
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
 
@@ -16,25 +16,27 @@ NUM_EPOCHS = 4
 IMAGE_WIDTH = 160
 IMAGE_HEIGHT = 60
 
-def train(model, train_inputs, train_labels, train_losses):
+def train(model, train_inputs, train_labels, train_lengths, train_losses):
     train_inputs = tf.reshape(train_inputs, (-1, 60, 160, 1))
     num_examples = train_inputs.shape[0]
     indices = tf.random.shuffle(tf.range(num_examples))
     train_inputs = tf.gather(train_inputs, indices)
     train_labels = tf.gather(train_labels, indices)
+    train_lengths = tf.gather(train_lengths, indices)
     for i in range(0, num_examples, model.batch_size):
         batch_inputs = train_inputs[i:min(num_examples, i+model.batch_size)]
         batch_labels = train_labels[i:min(num_examples, i+model.batch_size)]
+        batch_lengths = train_lengths[i:min(num_examples, i+model.batch_size)]
         with tf.GradientTape() as tape:
             logits = model.call(batch_inputs)
-            loss = model.loss(logits, batch_labels)
+            loss = model.loss(logits, batch_labels, batch_lengths)
             train_losses.append(loss)
         gradients = tape.gradient(loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         print('{} out of {} processed for training'.format(i, num_examples))
 
 
-def test(model, test_inputs, test_labels):
+def test(model, test_inputs, test_labels, test_lengths):
     """
     Tests the model on the test inputs and labels. You should NOT randomly
     flip images or do any extra preprocessing.
@@ -72,8 +74,10 @@ def visualize_results(image_inputs, logits, image_labels):
             ax[i].imshow(image_inputs[ind*3+i], cmap="Greys")
             predicted_label = decoded[ind*3+i]
             predicted_label = predicted_label[predicted_label != -1]
+            actual_label = image_labels[ind*3+i]
+            actual_label = actual_label[actual_label != -1]
             pl = np.array(list(string.digits + string.ascii_uppercase))[predicted_label.numpy()]
-            al = np.array(list(string.digits + string.ascii_uppercase))[image_labels[ind*3+i]]
+            al = np.array(list(string.digits + string.ascii_uppercase))[actual_label.astype(np.int32)]
             ax[i].set(title="PL: {}\nAL: {}".format(pl, al))
             plt.setp(ax[i].get_xticklabels(), visible=False)
             plt.setp(ax[i].get_yticklabels(), visible=False)
@@ -83,7 +87,7 @@ def visualize_results(image_inputs, logits, image_labels):
 
 def main():
     print('PREPROCESSING DATA...')
-    train_examples, train_labels, test_examples, test_labels = get_data()
+    train_examples, train_labels, train_lengths, test_examples, test_labels, test_lengths = get_data()
     print('DATA PREPROCESSED...')
 
     print('TRAINING...')
@@ -107,13 +111,13 @@ def main():
     train_losses = []
     for i in range(NUM_EPOCHS):
         print('**************** EPOCH {} ********************'.format(i))
-        train(model, train_examples, train_labels, train_losses)
+        train(model, train_examples, train_labels, train_lengths, train_losses)
         print('MAKING GRAPH')
         plt.plot(np.arange(len(train_losses)), np.array(train_losses))
         plt.xlabel('Batch (size 16)')
         plt.ylabel('Training Loss Per Batch')
         plt.title('Training Loss Per Batch vs. Batch Number')
-        plt.savefig('training_all_size_4.png')
+        plt.savefig('training_multiple_lengths.png')
         print('Testing')
         accuracy = test(model, test_examples, test_labels)
         print('******************** TRAINING ACCURACY AFTER EPOCH {} **********************'.format(i))
