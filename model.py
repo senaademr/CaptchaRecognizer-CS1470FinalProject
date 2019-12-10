@@ -70,9 +70,8 @@ class Model(tf.keras.Model):
         :return: the loss of the model as a Tensor
         """
         # Find a way to calculate label_length and logit_length each tensor of shape [batch_size] so below will be changed
-        pdb.set_trace()
-        #label_length = tf.convert_to_tensor(np.full((labels.shape[0]), labels.shape[1]))
-        logit_length = tf.convert_to_tensor(np.full((logits.shape[0]), logits.shape[1]))
+        label_length = tf.expand_dims(label_length, -1)
+        logit_length = tf.expand_dims(tf.convert_to_tensor(np.full((logits.shape[0]), logits.shape[1])), -1)
 
         #the last index (self.num_classes-1) is the 'blank' index
         loss = tf.keras.backend.ctc_batch_cost(labels, logits, label_length, logit_length)
