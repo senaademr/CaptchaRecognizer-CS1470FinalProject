@@ -29,12 +29,12 @@ def get_data():
 
 	alphanumeric = string.digits + string.ascii_uppercase
 	train_labels = [alphanumeric.find(char) for label in train_labels for char in label]
-	to_fill = np.zeros([train_examples.shape[0], max_len])
+	to_fill = np.zeros([train_examples.shape[0], max_len], dtype=int)
 	i = 0
 	row = 0
 	while i < len(train_labels):
 		lst = train_labels[i:i+train_lengths[row]]
-		lst.extend((max_len - train_lengths[row])*[-1])
+		lst.extend((max_len - train_lengths[row])*[0])
 		to_fill[row] = np.array(lst)
 		i += train_lengths[row]
 		row += 1
@@ -57,12 +57,12 @@ def get_data():
 	max_len = max(test_lengths)
 
 	test_labels = [alphanumeric.find(char) for label in test_labels for char in label]
-	to_fill = np.zeros([test_examples.shape[0], max_len])
+	to_fill = np.zeros([test_examples.shape[0], max_len], dtype=int)
 	i = 0
 	row = 0
 	while i < len(test_labels):
 		lst = test_labels[i:i+test_lengths[row]]
-		lst.extend((max_len - test_lengths[row])*[-1])
+		lst.extend((max_len - test_lengths[row])*[0])
 		to_fill[row] = np.array(lst)
 		i += test_lengths[row]
 		row += 1

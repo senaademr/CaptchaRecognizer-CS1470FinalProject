@@ -7,8 +7,8 @@ import numpy as np
 
 import pdb
 
-NUM_TRAIN = 10000
-NUM_TEST = 2000
+NUM_TRAIN = 30000
+NUM_TEST = 5000
 CAPTCHA_MIN_LEN = 4
 CAPTCHA_MAX_LEN = 8
 
