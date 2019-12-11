@@ -21,10 +21,10 @@ class Model(tf.keras.Model):
         self.stddev = 0.1
         self.initializer = tf.keras.initializers.TruncatedNormal(stddev=self.stddev)
         self.lstm_units = 256
-        self.batch_size = 16
+        self.batch_size = 128
         self.num_timesteps = 20
         self.num_classes = 37 #26 letters + 10 digits + 1 blank
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.5)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
         # Layer numbers follow the convolution numbers so they skip some according to the paper's model
         # CNN Layers

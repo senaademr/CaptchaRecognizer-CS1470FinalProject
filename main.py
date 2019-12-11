@@ -12,7 +12,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
 
 import pdb
 
-NUM_EPOCHS = 4
+NUM_EPOCHS = 100
 IMAGE_WIDTH = 160
 IMAGE_HEIGHT = 60
 
@@ -99,7 +99,7 @@ def main():
     if(len(sys.argv) > 1 and sys.argv[1] == '--restore'):
         print('RESTORING CHECKPOINT')
         checkpoint.restore(manager.latest_checkpoint)
-        if(len(sys.argv) > 1 and sys.argv[2] == '--results'):
+        if(len(sys.argv) > 2 and sys.argv[2] == '--results'):
             print('VISUALIZING RESULTS')
             indices = np.random.choice(test_examples.shape[0], 9)
             images = tf.gather(test_examples, indices)
