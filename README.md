@@ -2,11 +2,11 @@
 
 ## Generating Data:
 
-`python3 generate.py`.
+`python3 generate.py`
 
 ## Training a New Model
 
-`python3 main.py`.
+`python3 main.py`
 
 ## Restoring a Checkpoint
 
