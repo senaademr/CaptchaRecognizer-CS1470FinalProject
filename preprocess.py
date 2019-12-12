@@ -5,107 +5,69 @@ import cv2
 import imutils
 import string
 
-import pdb
-
-THRESHOLD = 200
-OUTPUT_DIRECTORY = 'letters'
-
 def get_data():
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
-    train_pngs = glob.glob('train_imgs/*.png')
-    train_examples = []
-    train_labels = []
-    for png in train_pngs:
-        img = cv2.imread(png)
-        train_examples.append(img)
-        train_labels.append(png)
+	#get the training data
+	os.chdir(os.path.dirname(os.path.realpath(__file__)))
+	train_pngs = glob.glob('train_imgs/*.png')
+	train_examples = []
+	train_labels = []
+	for png in train_pngs:
+		img = cv2.imread(png,0)
+		train_examples.append(img)
+		train_labels.append(png)
 
-    train_labels = [os.path.basename(label).replace('.png', '') for label in train_labels]
+	#process the images and get the strings for the training labels
+	train_examples = np.array(train_examples).astype(np.float32)
+	train_examples /= 255.0
+	train_examples = 1-train_examples
+	train_labels = [os.path.basename(label).replace('.png', '') for label in train_labels]
+	train_lengths = np.array([len(str) for str in train_labels])
+	max_len = max(train_lengths)
 
-    test_pngs = glob.glob('test_imgs/*.png')
-    test_examples = []
-    test_labels = []
-    for png in test_pngs:
-        img = cv2.imread(png)
-        test_examples.append(img)
-        test_labels.append(png)
+	#pad the training labels
+	alphanumeric = string.digits + string.ascii_uppercase
+	train_labels = [alphanumeric.find(char) for label in train_labels for char in label]
+	to_fill = np.zeros([train_examples.shape[0], max_len], dtype=int)
+	i = 0
+	row = 0
+	while i < len(train_labels):
+		lst = train_labels[i:i+train_lengths[row]]
+		lst.extend((max_len - train_lengths[row])*[-1])
+		to_fill[row] = np.array(lst)
+		i += train_lengths[row]
+		row += 1
 
-    test_labels = [os.path.basename(label).replace('.png', '') for label in test_labels]
+	train_labels = to_fill
 
-    return train_examples, train_labels, test_examples, test_labels
+	#get the testing data
+	test_pngs = glob.glob('test_imgs/*.png')
+	test_examples = []
+	test_labels = []
+	for png in test_pngs:
+		img = cv2.imread(png,0)
+		test_examples.append(img)
+		test_labels.append(png)
 
-def resize_to_fit(image, width, height):
-    """
-    A helper function to resize an image to fit within a given size
-    :param image: image to resize
-    :param width: desired width in pixels
-    :param height: desired height in pixels
-    :return: the resized image
-    """
+	#process the images and get the strings for the testing labels
+	test_examples = np.array(test_examples).astype(np.float32)
+	test_examples /= 255.0
+	test_examples = 1-test_examples
+	test_labels = [os.path.basename(label).replace('.png', '') for label in test_labels]
+	test_lengths = np.array([len(str) for str in test_labels])
+	max_len = max(test_lengths)
 
-    # grab the dimensions of the image, then initialize
-    # the padding values
-    (h, w) = image.shape[:2]
+	#pad the testing labels
+	test_labels = [alphanumeric.find(char) for label in test_labels for char in label]
+	to_fill = np.zeros([test_examples.shape[0], max_len], dtype=int)
+	i = 0
+	row = 0
+	while i < len(test_labels):
+		lst = test_labels[i:i+test_lengths[row]]
+		lst.extend((max_len - test_lengths[row])*[-1])
+		to_fill[row] = np.array(lst)
+		i += test_lengths[row]
+		row += 1
 
-    # if the width is greater than the height then resize along
-    # the width
-    if w > h:
-        image = imutils.resize(image, width=width)
+	test_labels = to_fill
 
-    # otherwise, the height is greater than the width so resize
-    # along the height
-    else:
-        image = imutils.resize(image, height=height)
-
-    # determine the padding values for the width and height to
-    # obtain the target dimensions
-    padW = int((width - image.shape[1]) / 2.0)
-    padH = int((height - image.shape[0]) / 2.0)
-
-    # pad the image then apply one more resizing to handle any
-    # rounding issues
-    image = cv2.copyMakeBorder(image, padH, padH, padW, padW,
-        cv2.BORDER_REPLICATE)
-    image = cv2.resize(image, (width, height))
-
-    # return the pre-processed image
-    return image
-
-def split_into_letters(examples, labels):
-    alphanumeric = string.digits + string.ascii_uppercase
-    letters = []
-    letter_labels = []
-    for (example, label) in zip(examples, labels):
-        gray = cv2.cvtColor(example, cv2.COLOR_BGR2GRAY)
-        gray = cv2.copyMakeBorder(gray, 8, 8, 8, 8, cv2.BORDER_REPLICATE)
-        thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-        contours, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        use_img = True
-        bounding_boxes = []
-        for contour in contours:
-            (x, y, w, h) = cv2.boundingRect(contour)
-            bounding_boxes.append((x, y, w, h))
-        if len(bounding_boxes) != 4:
-            use_img = False
-
-        bounding_boxes = sorted(bounding_boxes, key=lambda x: x[0])
-
-        if use_img:
-            for (bounding_box, letter) in zip(bounding_boxes, label):
-                x, y, w, h = bounding_box
-                letter_image = gray[y - 2:y + h + 2, x - 2:x + w + 2]
-                letter_image = resize_to_fit(letter_image,32,32)
-                letters.append(letter_image)
-                letter_labels.append(alphanumeric.find(letter))
-                letter_image = resize_to_fit(letter_image,32,32)
-                
-    return letters, letter_labels
-
-def main():
-    train_examples, train_labels, test_examples, test_labels = get_data()
-    letters, labels = split_into_letters(train_examples, train_labels)
-
-
-if __name__ == '__main__':
-    main()
+	return train_examples, train_labels, train_lengths, test_examples, test_labels, test_lengths
